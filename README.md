@@ -1,194 +1,239 @@
 # Create: CoinMarket
 
-Create: CoinMarket is a server-authoritative live market and auction house for Minecraft NeoForge 1.21.1 SMPs, powered by Create: Numismatics physical coins and verified bank-card accounts.
+**Create: CoinMarket** is a server-authoritative live market and auction-house mod for **Minecraft NeoForge 1.21.1** SMP servers. It adds fixed-price listings, timed auctions, collection claims, market dashboards, economy analytics, and Create: Numismatics-powered payments using physical coins and verified bank-card accounts.
 
-## Migration Note
+## Release: 1.2.0 for Minecraft 1.21.1
 
-Versions before `1.1.1` used the internal development mod id `auctionhousejs`. Create: CoinMarket now uses `create_coinmarket`. On first launch, the mod attempts to copy the old config and database into the new paths without deleting the originals:
+This release focuses on the production-ready CoinMarket experience: a native NeoForge dashboard UI, safer server-side auction handling, SQLite-backed persistence, Numismatics bank/card integration, and migration support from the earlier internal `auctionhousejs` mod id.
 
-- old config: `config/auctionhousejs-common.toml`
-- new config: `config/create_coinmarket-common.toml`
-- old database: `world/serverconfig/auctionhousejs/auctionhouse.db`
-- new database: `world/serverconfig/create_coinmarket/coinmarket.db`
+### Compatibility
 
-If both old and new databases exist, Create: CoinMarket uses the new database and leaves the old one untouched.
+| Requirement | Version |
+|---|---:|
+| Minecraft | `1.21.1` |
+| NeoForge | `21.1.x` |
+| Create | `6.0.x` |
+| Create: Numismatics | `1.0.20+` |
+| Create: CoinMarket | `1.2.0` |
 
-## UI
+Create and Create: Numismatics are required dependencies. Missing dependencies fail through NeoForge's normal dependency handling.
 
-The modern UI is a pure native NeoForge `Screen`, not a container-backed inventory screen. `/auction open` opens the CoinMarket dashboard without opening the player inventory, and the legacy chest menu is only used when `enableLegacyChestUi = true`.
+## Download / Build
 
-The dashboard uses the configured dark navy palette:
-
-- background `#07111F`
-- panel `#0B1B2E`
-- raised panel `#10243A`
-- accent `#1E90FF`
-- text `#FFFFFF`
-- muted text `#B7C5D8`
-- danger `#FF4D4D`
-- success `#4DFF88`
-- warning `#FFD166`
-
-UI Lib was researched for NeoForge 1.21.1. The 1.21.1 NeoForge file found (`uilib-1.0.1-1.21.1-neoforge.jar`) exposed runtime/intermediary Minecraft names when consumed by this Mojmap NeoForge ModDev project, so UI Lib is not required.
-
-Auction success, error, warning, and bank fallback messages are mirrored into bounded dashboard notifications while the screen is open. Toasts are anchored below the header so they do not overlap search or action controls.
-
-## Install
-
-Build:
+Build the mod with Gradle:
 
 ```powershell
 .\gradlew.bat clean build --warning-mode all
 ```
 
-Install this jar on both server and clients:
+The release jar will be created at:
 
 ```text
 build/libs/create-coinmarket-1.2.0+mc1.21.1-neoforge.jar
 ```
 
-Required on both server and clients:
+Install the jar on **both the server and every client**.
 
-- NeoForge 21.1.x
-- Minecraft 1.21.1
-- Create 6.0.x
-- Create: Numismatics 1.0.20 or newer for Minecraft 1.21.1
+## What This Mod Adds
 
-Create and Create: Numismatics are declared as required mod dependencies, so missing installs fail through normal NeoForge dependency handling. Create: CoinMarket also uses a non-optional `1.2` custom payload protocol for client/server compatibility checks.
-
-On server startup, Create: CoinMarket validates the required mods, configured Numismatics coin item ids, SQLite JDBC driver, database directory write access, and database open/migration path. Hard failures are reported as `Create: CoinMarket failed startup validation: ...` in the log instead of surfacing later as vague runtime errors. If Numismatics bank/card reflection cannot be verified but physical coins are enabled, the mod logs the reason and uses the physical coin economy.
-
-## Files
-
-- Config: `config/create_coinmarket-common.toml`
-- Server config: `world/serverconfig/create_coinmarket-server.toml`
-- Database: `world/serverconfig/create_coinmarket/coinmarket.db`
-- Backups: `world/serverconfig/create_coinmarket/backups/`
-
-## Database
-
-SQLite is the default and bundled database mode. The generated server config supports:
-
-- `database.enabled`
-- `database.mode = sqlite | mysql`
-- `database.host`, `database.port`, `database.name`, `database.schema`
-- `database.username`, `database.password`
-- `database.jdbcUrl`
-- `database.tablePrefix`
-- `database.poolSize`
-- `database.connectionTimeoutSeconds`
-- `database.autoCreateTables`
-- `database.autoMigrate`
-- `database.logSqlErrors`
-- `database.sqlitePath`
-
-When `database.mode=sqlite`, tables and indexes are auto-created in `world/serverconfig/create_coinmarket/coinmarket.db`. MySQL settings are present for hosted SQL configuration, but 1.2.0 does not bundle a MySQL JDBC driver; using `database.mode=mysql` fails startup clearly until a compatible driver or integration is supplied.
+- Server-authoritative market and auction house
+- Fixed-price listings and timed auction listings
+- Native NeoForge dashboard UI opened with `/auction open`
+- Sell panel, listing browser, collection page, admin controls, market summaries, charts, and leaderboards
+- Create: Numismatics physical coin support
+- Verified Numismatics bank-card account support
+- SQLite-backed database with automatic table creation and migration
+- Claim-safe item delivery and payout handling
+- Admin audit logging and repair tools
+- Migration support from older `auctionhousejs` paths
 
 ## Commands
 
-Player:
+### Player Commands
 
-- `/auction open`
-- `/auction open all`
-- `/auction open admin`
-- `/auction open public`
-- `/auction sell <price>`
-- `/auction sell <price> <quantity>`
-- `/auction sell hand <price>`
-- `/auction auction hand <startBid> <durationHours> [buyout]`
-- `/auction bid <listingId> <amount>`
-- `/auction buyout <listingId>`
-- `/auction cancel <listingId>`
-- `/auction collect`
-- `/auction collectmoney`
-- `/auction balance`
-- `/auction history`
-- `/auction pricecheck`
-- `/auction market <item>`
+```text
+/auction open
+/auction open all
+/auction open admin
+/auction open public
+/auction sell <price>
+/auction sell <price> <quantity>
+/auction sell hand <price>
+/auction auction hand <startBid> <durationHours> [buyout]
+/auction bid <listingId> <amount>
+/auction buyout <listingId>
+/auction cancel <listingId>
+/auction collect
+/auction collectmoney
+/auction balance
+/auction history
+/auction pricecheck
+/auction market <item>
+```
 
-Admin permission level 2:
+### Admin Commands
 
-- `/auction admin addhand <price>`
-- `/auction admin add <item> <price>`
-- `/auction admin remove <listingId>`
-- `/auction admin list`
-- `/auction admin clear <admin|public|all>`
-- `/auction admin reload`
-- `/auction admin save`
-- `/auction admin inspect <listingId>`
-- `/auction admin repair`
-- `/auction resolveexpired`
-- `/auction admin endauction <listingId>`
-- `/auction admin refundlisting <listingId>`
-- `/auction admin returnlisting <listingId>`
-- `/auction admin viewclaims <player>`
-- `/auction admin forceclaim <player> <claimId>`
-- `/auction admin numismaticscheck`
+Requires permission level `2`.
 
-## Dashboard
+```text
+/auction admin addhand <price>
+/auction admin add <item> <price>
+/auction admin remove <listingId>
+/auction admin list
+/auction admin clear <admin|public|all>
+/auction admin reload
+/auction admin save
+/auction admin inspect <listingId>
+/auction admin repair
+/auction resolveexpired
+/auction admin endauction <listingId>
+/auction admin refundlisting <listingId>
+/auction admin returnlisting <listingId>
+/auction admin viewclaims <player>
+/auction admin forceclaim <player> <claimId>
+/auction admin numismaticscheck
+```
 
-The browser syncs prepared DTOs from the server. It does not query SQLite client-side and does not send the whole database. It includes dashboard summaries, listing cards, search, sorting, a Sell panel, collection/proceeds claims, economy charts, leaderboards, and admin controls.
+## Market Dashboard
 
-All buy, bid, buyout, sell, cancel, collect, and admin actions are validated on the server.
+`/auction open` opens the CoinMarket dashboard. The modern dashboard is a native NeoForge `Screen`, not a chest-style inventory menu.
 
-## Auctions And Payouts
+The dashboard includes:
 
-Listings can be fixed-price or auction listings.
+- Browse, search, and sort listings
+- Fixed-price buying
+- Auction bidding and buyout actions
+- Sell panel
+- Collection and proceeds claims
+- Economy summaries and charts
+- Leaderboards
+- Admin controls
+- Live notifications for success, error, warning, and bank fallback messages
 
-- Fixed-price listings sell immediately at the listed price.
-- Auction listings reserve each highest bid in escrow.
-- A new bid must meet the current bid plus the configured minimum increment.
-- Outbid funds become pending proceeds/refunds for the previous bidder.
-- Buyout ends an auction immediately when a buyout price exists.
-- Expired auctions with bids create an item claim for the winner and pending proceeds for the seller.
+The legacy chest UI is still available by setting:
+
+```toml
+enableLegacyChestUi = true
+```
+
+## Auctions and Payouts
+
+Create: CoinMarket supports two listing types:
+
+- **Fixed-price listings** sell immediately at the listed price.
+- **Auction listings** reserve the current highest bid in escrow until the auction ends.
+
+Auction behavior:
+
+- New bids must meet the current bid plus the configured minimum increment.
+- Outbid players receive pending proceeds/refunds.
+- Buyout ends the auction immediately when a buyout price exists.
+- Expired auctions with bids create an item claim for the winner and seller proceeds.
 - Expired auctions without bids return the item to the seller collection.
 
-Seller proceeds and bidder refunds use the payout system. If direct auto-credit is configured and succeeds, funds are credited immediately. Otherwise they remain safely claimable through the Collection page or `/auction collectmoney`.
+Seller proceeds and bidder refunds are handled safely through the payout system. If direct auto-credit succeeds, funds are credited immediately. Otherwise, funds remain claimable through the Collection page or:
 
-## Economy
+```text
+/auction collectmoney
+```
 
-Default coin values are configurable and use verified Numismatics item ids:
+## Economy Integration
 
-- `numismatics:spur=1`
-- `numismatics:bevel=8`
-- `numismatics:sprocket=16`
-- `numismatics:cog=64`
-- `numismatics:crown=512`
-- `numismatics:sun=4096`
+Default Numismatics coin values are configurable:
 
-Bank integration uses the verified Create: Numismatics API surface from 1.0.20:
+```text
+numismatics:spur=1
+numismatics:bevel=8
+numismatics:sprocket=16
+numismatics:cog=64
+numismatics:crown=512
+numismatics:sun=4096
+```
 
-- bank manager: `dev.ithundxr.createnumismatics.Numismatics.BANK`
-- accounts: `GlobalBankManager#getAccount`
-- balances: `BankAccount#getBalance`, `deposit`, `deduct`
-- cards: `CardItem#get(ItemStack)` and the `card_account_id` component
+Supported payment source modes:
 
-Payment source is controlled by `preferredPaymentSource`:
+```text
+coins_only
+bank_only
+bank_then_coins
+coins_then_bank
+```
 
-- `coins_only`
-- `bank_only`
-- `bank_then_coins`
-- `coins_then_bank`
+When a bound Numismatics card is present, the dashboard header and `/auction balance` show:
 
-If a bound card is present, the dashboard header and `/auction balance` show physical coins, bank/card balance, total spendable balance, and the active payment source. Seller payouts prefer a resolvable Numismatics bank account when enabled; otherwise they are stored as pending proceeds for `/auction collectmoney`.
+- Physical coin balance
+- Bank/card balance
+- Total spendable balance
+- Active payment source
 
-## Dupe Safety
+If Numismatics bank or card reflection cannot be verified but physical coins are enabled, Create: CoinMarket logs the reason and falls back to the physical coin economy.
 
-- Purchases and collection claims run in SQLite transactions.
-- The server re-reads and validates listings before charging buyers.
-- Buyer inventory room is checked before withdrawing coins.
-- Expired/canceled public listing items are returned through collection rows.
-- Admin-removed unsold listings return the serialized item to the seller mailbox.
-- Active auction bids are refunded to pending proceeds before an auction is canceled or returned.
-- Completed auction winner items are delivered through collection rows if immediate delivery is unsafe or impossible.
-- GUI data is treated as stale; server state wins.
+## Files and Storage
+
+Create: CoinMarket stores config and data in these paths:
+
+```text
+config/create_coinmarket-common.toml
+world/serverconfig/create_coinmarket-server.toml
+world/serverconfig/create_coinmarket/coinmarket.db
+world/serverconfig/create_coinmarket/backups/
+```
+
+SQLite is the default bundled database mode. MySQL configuration options are present, but this release does **not** bundle a MySQL JDBC driver. Setting `database.mode=mysql` will fail startup clearly until a compatible driver or integration is supplied.
+
+## Startup Validation
+
+On server startup, Create: CoinMarket validates:
+
+- Required mod dependencies
+- Configured Numismatics coin item ids
+- SQLite JDBC availability
+- Database directory write access
+- Database open and migration path
+
+Hard failures are reported in the log as:
+
+```text
+Create: CoinMarket failed startup validation: ...
+```
+
+## Safety Features
+
+- Purchases and collection claims run inside SQLite transactions.
+- Listings are re-read and validated server-side before buyers are charged.
+- Buyer inventory space is checked before coins are withdrawn.
+- Expired or canceled public listing items are returned through collection rows.
+- Admin-removed unsold listings return serialized items to the seller mailbox.
+- Active auction bids are refunded before an auction is canceled or returned.
+- Completed auction winner items are delivered through collection rows if immediate delivery is unsafe.
+- GUI data is treated as stale; server state always wins.
 - Admin actions are audit logged.
 
 ## Troubleshooting
 
-- If listings do not appear, run `/auction admin repair`.
-- If players cannot pay, confirm configured currency item ids exist in the registry.
-- Use `/auction balance` to inspect physical and bank/card balance.
-- Use `/auction admin numismaticscheck` to inspect Numismatics detection, coin ids, card ids, and bank API availability.
-- If the modern UI is undesirable, set `enableLegacyChestUi = true`.
-- Before database maintenance, use the Admin page backup button first.
+| Problem | Fix |
+|---|---|
+| Listings do not appear | Run `/auction admin repair` |
+| Players cannot pay | Confirm configured currency item ids exist in the registry |
+| Need to inspect balance | Run `/auction balance` |
+| Numismatics detection issues | Run `/auction admin numismaticscheck` |
+| Modern UI is not desired | Set `enableLegacyChestUi = true` |
+| Database maintenance needed | Use the Admin page backup button first |
+
+## Release Notes
+
+### 1.2.0
+
+- Added production-ready native NeoForge CoinMarket dashboard
+- Added fixed-price and auction listing flows
+- Added server-prepared market DTO syncing instead of client-side database access
+- Added dashboard notifications for action results and bank fallback messages
+- Added SQLite database persistence and migration handling
+- Added Numismatics physical coin and verified bank-card payment support
+- Added collection-safe item and payout claiming
+- Added admin repair, inspection, refund, return, force-claim, and diagnostics commands
+- Added startup validation for dependencies, currency ids, database access, and migration path
+
+## License
+
+See `LICENSE`.
